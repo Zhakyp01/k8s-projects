@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "awesomecat.fullname" . }}-gcp-team-backend-deployment
+  labels:
+  {{- include "awesomecat.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.gcpTeamBackendDeployment.replicas }}
+  selector:
+    matchLabels:
+      component: back
+    {{- include "awesomecat.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        component: back
+      {{- include "awesomecat.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - env:
+        - name: PGHOST
+          valueFrom:
+            secretKeyRef:
+              key: PGHOST
+              name: {{ include "awesomecat.fullname" . }}-postgres-secret
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              key: PGUSER
+              name: {{ include "awesomecat.fullname" . }}-postgres-secret
+        - name: PGDATABASE
+          valueFrom:
+            secretKeyRef:
+              key: PGDATABASE
+              name: {{ include "awesomecat.fullname" . }}-postgres-secret
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PGPASSWORD
+              name: {{ include "awesomecat.fullname" . }}-postgres-secret
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.gcpTeamBackendDeployment.back.image.repository }}:{{ .Values.gcpTeamBackendDeployment.back.image.tag
+          | default .Chart.AppVersion }}
+        name: back
+        ports:
+        - containerPort: 3000
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/secret-volume
+          name: secret-volume
+          readOnly: true
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: {{ include "awesomecat.fullname" . }}-postgres-secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "awesomecat.fullname" . }}-frontend-deployment
+  labels:
+  {{- include "awesomecat.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.frontendDeployment.replicas }}
+  selector:
+    matchLabels:
+      component: front
+    {{- include "awesomecat.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        component: front
+      {{- include "awesomecat.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.frontendDeployment.frontend.image.repository }}:{{ .Values.frontendDeployment.frontend.image.tag
+          | default .Chart.AppVersion }}
+        name: frontend
+        ports:
+        - containerPort: 80
+        resources: {}

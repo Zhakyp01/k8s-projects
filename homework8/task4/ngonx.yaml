@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  annotations:
+    # change nginx.example.com to match an appropriate value
+    external-dns.alpha.kubernetes.io/hostname: nginx.bakai4kg.gq.    
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: nginx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - image: nginx
+          command: ["sh", "-c",  "echo Hi it is worked 1 > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"]
+          name: nginx
+          ports:
+            - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx2
+  annotations:
+    # change nginx.example.com to match an appropriate value
+    # external-dns.alpha.kubernetes.io/hostname: nginx.bakai4kg.gq.    
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: nginx2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx2
+spec:
+  selector:
+    matchLabels:
+      app: nginx2
+  template:
+    metadata:
+      labels:
+        app: nginx2
+    spec:
+      containers:
+        - image: nginx
+          command: ["sh", "-c",  "echo Hi it is worked 2 > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"]
+          name: nginx
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: server
+  annotations:
+    # change nginx.example.com to match an appropriate value
+    external-dns.alpha.kubernetes.io/hostname: server.bakai4kg.gq.
+    nginx.ingress.kubernetes.io/rewrite-target: / 
+    kubernetes.io/ingress.class: "nginx" 
+    # cert-manager.io/issuer: "letsencrypt-staging" 
+spec:
+  tls:
+  - hosts:
+    - server.bakai4kg.gq
+    secretName: c-tls-secret
+  rules:
+    - host: server.bakai4kg.gq
+      http:
+        paths:
+          - path: /first
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+          - path: /second
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx2
+                port:
+                  number: 80

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata: 
+   name: gcr
+   labels:
+    app.kubernetes.io/name: gcr
+spec: 
+  containers:
+  - name: gcr-costom-image
+    image: gcr.io/gcp-team-project/web2:1.0.0
+    ports:
+    - containerPort: 80

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gcp-team-backend-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      component: back
+  template:
+    metadata:
+      labels:
+        component: back
+    spec:
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: postgres-secret
+      containers:
+        - name: back
+          image: gcr.io/gcp-team-project/backend:latest
+          ports:
+            - containerPort: 3000
+          env:
+          - name: PGHOST
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: PGHOST
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: PGUSER
+          - name: PGDATABASE
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: PGDATABASE                
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: PGPASSWORD
+          volumeMounts:
+          - name: secret-volume
+            readOnly: true
+            mountPath: "/etc/secret-volume"

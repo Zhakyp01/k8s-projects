@@ -1,0 +1,23 @@
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: zhakyp-crt
+  namespace: zhakyp1
+spec:
+  secretName: zhakyp-tls-secret
+  dnsNames:
+    - ns.bakai4kg.gq
+  issuerRef:
+    name: zhakyp-issuer
+    kind: Issuer
+    group: cert-manager.io
+
+kubectl annotate serviceaccount "default" \
+  --namespace ${EXTERNALDNS_NS:-"nur23space"} \
+  "iam.gke.io/gcp-service-account=$DNS_SA_EMAIL"
+
+kubectl patch deployment "external-dns" \
+  --namespace ${EXTERNALDNS_NS:-"nur23space"} \
+  --patch \
+ '{"spec": {"template": {"spec": {"nodeSelector": {"iam.gke.io/gke-metadata-server-enabled": "true"}}}}}'

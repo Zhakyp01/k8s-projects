@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-container
+        image: my-app:v1
+        ports:
+        - containerPort: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app
+spec:
+  selector:
+    app: my-app
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app-canary
+  template:
+    metadata:
+      labels:
+        app: my-app-canary
+    spec:
+      containers:
+      - name: my-container
+        image: my-app:v2
+        ports:
+        - containerPort: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-canary
+spec:
+  selector:
+    app: my-app-canary
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+
+# ---
+
+# apiVersion: extensions/v1beta1
+# kind: Ingress
+# metadata:
+#   name: my-app-ingress
+#   annotations:
+#     nginx.ingress.kubernetes.io/canary: "true"
+# spec:
+#   rules:
+#   - host: my-app.example.com
+#     http:
+#       paths:
+#       - backend:
+#           serviceName: my-app
+#           servicePort: 80
+#         path: /
+#       - backend:
+#           serviceName: my-app-canary
+#           servicePort: 80
+#         path: /
+#         pathType: Prefix
+#   tls:
+#   - secretName: my-app-tls
+#     hosts:
+#       - my-app.example.com

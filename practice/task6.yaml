@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secret
+  namespace: secret
+type: Opaque
+data:
+  my-secret-key: emhha3lw
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret2
+  namespace: secret
+type: Opaque
+data:
+  user: dXNlcjE= 
+  pass: MTIzNA== 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-pod
+  namespace: secret
+spec:
+  containers:
+  - name: busybox
+    image: busybox:1.31.1
+    command: ["sleep", "3600"]
+    env:
+    - name: APP_USER
+      valueFrom:
+        secretKeyRef:
+          name: secret2
+          key: user
+    - name: APP_PASS
+      valueFrom:
+        secretKeyRef:
+          name: secret2
+          key: pass
+    volumeMounts:
+    - name: secret1-volume
+      mountPath: /tmp/secret1
+  volumes:
+  - name: secret1-volume
+    secret:
+      secretName: my-secret
+      defaultMode: 420 
+  

@@ -1,0 +1,28 @@
+backendService:
+  ports:
+  - port: 3000
+    targetPort: 3000
+  type: ClusterIP
+frontendDeployment:
+  frontend:
+    image:
+      repository: gcr.io/gcp-team-project/frontend
+      tag: latest
+  replicas: 2
+frontendService:
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
+gcpTeamBackendDeployment:
+  back:
+    image:
+      repository: gcr.io/gcp-team-project/backend
+      tag: latest
+  replicas: 2
+kubernetesClusterDomain: cluster.local
+postgresSecret:
+  pgdatabase: ""
+  pghost: ""
+  pgpassword: ""
+  pguser: ""

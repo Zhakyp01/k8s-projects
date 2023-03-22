@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: zhakyp-crt
+spec:
+  secretName: c-tls-secret
+  dnsNames:
+    - server.bakai4kg.gq
+  issuerRef:
+    name: c-issuer
+    kind: Issuer
+    group: cert-manager.io
